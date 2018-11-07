@@ -166,7 +166,7 @@ $ touch config
 $ vim config
 # 将下边信息写入
 IdentityFile ~/.ssh/id_rsa
-Host {git.xxxxx.com}
+Host {gitlab.xxxxx.com}
 Port {2345}
 User {git}
 ```
