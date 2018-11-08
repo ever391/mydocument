@@ -171,3 +171,15 @@ Port {2345}
 User {git}
 ```
 
+### No.11 VPN配置（L2TP）
+
+```
+$ sudo vim /etc/ppp/options
+#复制以下内容到文本内
+plugin L2TP.ppp
+l2tpnoipsec
+
+# 退出vim
+:wq
+```
+
