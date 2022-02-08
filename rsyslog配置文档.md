@@ -30,7 +30,7 @@ yum install rsyslog-mmjsonparse rsyslog-mmutf8fix rsyslog-elasticsearch rsyslog-
 
 
 
-### 3. 配置
+### 3. ES配置
 
 ```
 module(load="imudp")   
@@ -51,6 +51,26 @@ template(name="estp" type="list" option.json="on") {
 template(name="searchIndex" type="string" string="crawler-%$year%.%$month%.%$day%")
 
 action(type="omelasticsearch" server="estp" serverport="9200" searchIndex="searchIndex" searchType="events" dynsearchIndex="on" bulkmode="on" template="estp" action.resumeretrycount="-1")
+```
+
+### 3.Mysql配置
+
+```
+module(load="imudp")   
+module(load="ommysql")
+
+input(type="imudp" port="514")
+
+template(name="sqltp" type="list" option.sql="on") {
+	constant(value="inser into {table} (field....)")
+	constant(value=" values ('")
+	property(name="msg")
+	constant(value="','")
+	proprety....
+	constant(value="','")
+}
+
+action(type="ommysql" server="192.168.1.2" serverport="3306" db="{dbname}" uid="{user}" pwd="{password}" template="sqltp")
 ```
 
 
@@ -98,7 +118,27 @@ brew service start elasticsearch
 
 
 
+
+
 ### 4.启动
+
+ - 创建linux 帐户： elasticsearch
+
+ - 安装JDK 1.8
+
+ - Jdk8 HOME
+
+ - ```
+which java  
+      
+    ls -lrt /usr/bin/java  
+      
+    ls -lrt /etc/alternatives/java  
+```
+    
+ - 
+
+ - 设置JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.7.0.261-2.6.22.2.el7_8.x86_64/jre
 
  - 单机启动
 
