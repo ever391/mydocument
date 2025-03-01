@@ -32,25 +32,66 @@ yum install rsyslog-mmjsonparse rsyslog-mmutf8fix rsyslog-elasticsearch rsyslog-
 
 ### 3. ES配置
 
-```
-module(load="imudp")   
-module(load="omelasticsearch")
+```# 加载必要模块
+module(load="imudp")
+module(load="mmjsonparse")     # JSON解析
+module(load="mmutf8fix")
+module(load="omelasticsearch") # ES输出
 
+# 输入设置
 input(type="imudp" port="514")
 
-template(name="estp" type="list" option.json="on") {
-		constant(value="{")
-		constant(value="\"timestamp\":\"")			property(name="timereported" dateFormat="rfc3339")
-		constant(value="\",\"message\":\"")			property(name="msg")
-		constant(value="\",\"hostname\":\"")		property(name="hostname")
-		constant(value="\",\"fromhost\":\"")		property(name="fromhost")
-		constant(value="\",\"fromhostIP\":\"")	property(name="fromhost-ip")
-		#constant(value="\",")                  property(name="$!all-json" position.from="2")
+
+action(type="mmutf8fix")
+
+# 带cookie参数解析CEE格式
+#action(type="mmjsonparse")
+#if $parsesuccess == "OK" then {
+#   action(type="omfile" File="/var/log/rsyslog/jsonparseOK.log")
+#}
+#else if $parsesuccess == "FAIL" then {
+#   action(type="omfile" File="/var/log/rsyslog/jsonparseErr.log")
+#}
+
+# 仅处理包含JSON数据的日志（例如来自应用的日志）
+#if $programname == "your_app_name" and $msg contains "{" then {
+#    mmjsonparse()                # 解析JSON内容
+#    action(type="omelasticsearch")  # 触发ES转发
+#      stop                         # 避免重复处理
+#}
+
+
+# ES输出模板（完全继承原始JSON）
+template(name="estp" type="list") {
+                constant(value="{")
+                constant(value="\"timestamp\":\"")                      property(name="timereported" dateFormat="rfc3339")
+                constant(value="\",\"hostname\":\"")                    property(name="hostname")
+                constant(value="\",\"fromhost\":\"")                    property(name="fromhost")
+                constant(value="\",\"fromhostIP\":\"")                  property(name="fromhost-ip")
+                constant(value="\",")                                   property(name="$!all-json" position.from="2")
 }
 
-template(name="searchIndex" type="string" string="crawler-%$year%.%$month%.%$day%")
 
-action(type="omelasticsearch" server="estp" serverport="9200" searchIndex="searchIndex" searchType="events" dynsearchIndex="on" bulkmode="on" template="estp" action.resumeretrycount="-1")
+
+# 索引模板（字母开头+日期）
+template(name="searchIndex" type="string" string="taoshu-%$year%-%$month%-%$day%")
+
+# ES输出配置
+action(
+    type="omelasticsearch"
+    server="192.168.0.176"
+    serverport="9200"
+    searchIndex="searchIndex"
+    dynsearchIndex="on"
+    bulkmode="on"
+    template="estp"
+    action.resumeretrycount="-1"
+#    usehttps="on"
+#    uid="elastic"
+#    pwd="_2ElrGwg+R234z2oCtrN"
+#    tls.cacert="/etc/elasticsearch/es_ca.crt"
+#    tls.mycert="/etc/elasticsearch/es-ca.pem"
+    # 新增容错参数
 ```
 
 ### 3.Mysql配置
