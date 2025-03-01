@@ -45,7 +45,8 @@ input(type="imudp" port="514")
 action(type="mmutf8fix")
 
 # 带cookie参数解析CEE格式
-#action(type="mmjsonparse")
+action(type="mmjsonparse")  # 关闭会引发解析错误
+
 #if $parsesuccess == "OK" then {
 #   action(type="omfile" File="/var/log/rsyslog/jsonparseOK.log")
 #}
@@ -68,7 +69,7 @@ template(name="estp" type="list") {
                 constant(value="\",\"hostname\":\"")                    property(name="hostname")
                 constant(value="\",\"fromhost\":\"")                    property(name="fromhost")
                 constant(value="\",\"fromhostIP\":\"")                  property(name="fromhost-ip")
-                constant(value="\",")                                   property(name="$!all-json" position.from="2")
+                constant(value="\",")                                   property(name="$!all-json" position.from="2")    # position.from="2" 会过滤到外城的{}
 }
 
 
